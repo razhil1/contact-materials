@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+ENV/
+instance/
+waterproof.db
+uploads/
+exports/
+.DS_Store
+.vscode/
+.idea/

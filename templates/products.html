@@ -1,0 +1,456 @@
+{% extends "base.html" %}
+{% block title %}Products - Waterproof Price Tracker{% endblock %}
+
+{% block extra_css %}
+<style>
+.prod-toolbar{display:flex;align-items:center;gap:.75rem;background:#fff;border:1px solid #d0d5dd;border-bottom:none;border-radius:8px 8px 0 0;padding:.5rem .75rem;flex-wrap:wrap}
+.prod-toolbar .tg{display:flex;align-items:center;gap:.5rem;padding-right:.75rem;border-right:1px solid #e0e0e0}
+.prod-toolbar .tg:last-child{border-right:none}
+.t-search{border:1px solid #d0d5dd;border-radius:4px;padding:.3rem .6rem;font-size:.82rem;width:200px;outline:none}
+.t-search:focus{border-color:var(--accent-orange)}
+.t-select{border:1px solid #d0d5dd;border-radius:4px;padding:.3rem .5rem;font-size:.82rem;background:#fff}
+.t-btn{background:none;border:1px solid transparent;border-radius:4px;padding:.3rem .6rem;font-size:.82rem;cursor:pointer;color:var(--navy-dark);display:flex;align-items:center;gap:.3rem;transition:all .15s;white-space:nowrap}
+.t-btn:hover{background:#f0f4ff;border-color:#d0d5dd}
+.t-btn.active{background:#e0e7ff;border-color:#a5b4fc}
+
+.grid-wrap{border:1px solid #d0d5dd;border-radius:0 0 8px 8px;overflow:hidden;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.grid-scroll{overflow:auto;max-height:calc(100vh - 280px)}
+
+.pgrid{border-collapse:separate;border-spacing:0;width:100%;font-size:.83rem;font-family:'IBM Plex Sans',sans-serif}
+.pgrid thead th{background:#f3f4f6;color:#374151;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.03em;padding:.55rem .7rem;border-bottom:2px solid #d0d5dd;border-right:1px solid #e5e7eb;position:sticky;top:0;z-index:10;white-space:nowrap;user-select:none;cursor:pointer}
+.pgrid thead th:hover{background:#e8ebf0}
+.pgrid tbody td{padding:.5rem .7rem;border-bottom:1px solid #f0f0f0;border-right:1px solid #f0f0f0;vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pgrid tbody tr:hover td{background:#fef3c7!important}
+.pgrid tbody tr:nth-child(even) td{background:#fafbfc}
+.pgrid .rn{background:#f9fafb;color:#9ca3af;font-size:.72rem;text-align:center;width:40px;user-select:none}
+.pgrid .cn{font-weight:600;color:var(--navy-dark)}
+
+.cat-badge{display:inline-block;padding:.12rem .4rem;border-radius:3px;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.02em}
+.cat-masonry{background:#fde68a;color:#92400e}.cat-scaffolding{background:#e0e7ff;color:#3730a3}
+.cat-plumbing{background:#dbeafe;color:#1e40af}.cat-painting{background:#fce7f3;color:#9d174d}
+.cat-tile-works{background:#d1fae5;color:#065f46}.cat-steels{background:#e5e7eb;color:#374151}
+.cat-woods-\&-boards{background:#fef3c7;color:#78350f}.cat-glass-\&-aluminum{background:#cffafe;color:#155e75}
+.cat-miscellaneous{background:#f3e8ff;color:#6b21a8}.cat-safety{background:#fee2e2;color:#991b1b}
+.cat-tools{background:#d1d5db;color:#1f2937}.cat-pats-products{background:#ede9fe;color:#5b21b6}
+.cat-raw-materials{background:#ffedd5;color:#9a3412}
+
+.act-group{display:flex;gap:.3rem;justify-content:center}
+.act-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:4px;border:1px solid #e5e7eb;background:#fff;color:#6b7280;cursor:pointer;transition:all .15s;text-decoration:none;font-size:.8rem}
+.act-btn:hover{background:#f3f4f6;color:var(--navy-dark)}
+.act-btn.edit:hover{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+.act-btn.del:hover{background:#fee2e2;color:#dc2626;border-color:#fca5a5}
+
+/* Always-visible quick-add bar */
+.qa-bar{background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%);border:2px solid var(--accent-orange);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1rem;box-shadow:0 2px 8px rgba(232,93,4,.12)}
+.qa-bar-title{font-weight:700;font-size:.9rem;color:var(--accent-orange);margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem}
+.qa-bar-title .count-badge{background:var(--accent-orange);color:#fff;border-radius:12px;padding:.1rem .5rem;font-size:.7rem;margin-left:.4rem}
+.qa-fields{display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap}
+.qa-field{display:flex;flex-direction:column;gap:.2rem}
+.qa-field label{font-size:.7rem;font-weight:600;color:#92400e;text-transform:uppercase;letter-spacing:.04em}
+.qa-field input,.qa-field select{border:1px solid #e5c07b;border-radius:4px;padding:.35rem .5rem;font-size:.83rem;background:#fff;outline:none;transition:border-color .15s}
+.qa-field input:focus,.qa-field select:focus{border-color:var(--accent-orange);box-shadow:0 0 0 2px rgba(232,93,4,.15)}
+.qa-field.name-field input{width:220px;font-weight:600}
+.qa-field.brand-field input{width:140px}
+.qa-field.desc-field input{width:180px}
+.qa-save-btn{background:var(--accent-orange);color:#fff;border:none;border-radius:6px;padding:.4rem 1rem;font-size:.83rem;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.3rem;align-self:flex-end;white-space:nowrap}
+.qa-save-btn:hover{background:#c94d03;transform:translateY(-1px)}
+.qa-hint{font-size:.72rem;color:#92400e;margin-top:.5rem;display:flex;gap:1rem;align-items:center}
+.qa-hint kbd{background:#fff;border:1px solid #e5c07b;border-radius:3px;padding:.05rem .3rem;font-size:.7rem;font-family:'IBM Plex Mono',monospace}
+
+/* Recent adds flash */
+@keyframes addFlash{0%{background:#dcfce7}100%{background:transparent}}
+.just-added td{animation:addFlash 1.5s ease-out}
+
+/* Inline edit */
+.ie-input{width:100%;border:2px solid var(--accent-orange);border-radius:3px;padding:.2rem .4rem;font-size:.82rem;outline:none;background:#fffbeb}
+
+.grid-status{display:flex;align-items:center;justify-content:space-between;padding:.4rem .75rem;background:#f9fafb;border-top:1px solid #e5e7eb;font-size:.75rem;color:#6b7280}
+.no-data{text-align:center;padding:3rem!important;color:#9ca3af}
+.no-data i{font-size:2rem;display:block;margin-bottom:.5rem}
+
+/* Toast */
+.toast-msg{position:fixed;bottom:20px;right:20px;background:#065f46;color:#fff;padding:.6rem 1.2rem;border-radius:8px;font-size:.85rem;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15);opacity:0;transition:opacity .3s;pointer-events:none}
+.toast-msg.show{opacity:1}
+
+/* Paste area */
+.paste-area{display:none;background:#f8fafc;border:2px dashed #a5b4fc;border-radius:8px;padding:1rem;margin-bottom:1rem}
+.paste-area.show{display:block}
+.paste-area textarea{width:100%;min-height:100px;border:1px solid #d0d5dd;border-radius:4px;padding:.5rem;font-family:'IBM Plex Mono',monospace;font-size:.82rem;resize:vertical}
+.paste-area .pa-hint{font-size:.75rem;color:#6b7280;margin-top:.4rem}
+.paste-bar{display:flex;gap:.5rem;margin-top:.5rem}
+.paste-bar button{padding:.3rem .8rem;border-radius:4px;border:1px solid #d0d5dd;background:#fff;font-size:.8rem;cursor:pointer;transition:all .15s}
+.paste-bar button.primary{background:var(--success-green);color:#fff;border-color:var(--success-green)}
+.paste-bar button:hover{opacity:.85}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-box-seam"></i> Products / Materials</h1>
+    <a href="{{ url_for('add_product') }}" class="btn btn-primary-custom" style="background:var(--navy-blue);border-color:var(--navy-blue);">
+        <i class="bi bi-pencil-square"></i> Full Form
+    </a>
+</div>
+
+<!-- ─── Always-Visible Quick Add Bar ─────────────────── -->
+<div class="qa-bar" id="qaBar">
+    <div class="qa-bar-title">
+        <i class="bi bi-lightning-charge-fill"></i> Quick Add Product
+        <span class="count-badge" id="addedCount" style="display:none">0 added</span>
+    </div>
+    <div class="qa-fields">
+        <div class="qa-field name-field">
+            <label>Name *</label>
+            <input type="text" id="qaName" placeholder="e.g. Waterproof Membrane" autocomplete="off">
+        </div>
+        <div class="qa-field brand-field">
+            <label>Brand</label>
+            <input type="text" id="qaBrand" placeholder="Brand name" autocomplete="off">
+        </div>
+        <div class="qa-field">
+            <label>Category</label>
+            <select id="qaCat">
+                <option value="">—</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="qa-field">
+            <label>Unit</label>
+            <select id="qaUnit">
+                <option value="">—</option>
+                <option value="bag">bag</option><option value="liter">liter</option>
+                <option value="sqm">sqm</option><option value="pcs">pcs</option>
+                <option value="roll">roll</option><option value="set">set</option>
+                <option value="kg">kg</option><option value="meter">meter</option>
+                <option value="pair">pair</option><option value="box">box</option>
+                <option value="gallon">gallon</option><option value="sheet">sheet</option>
+                <option value="length">length</option>
+            </select>
+        </div>
+        <div class="qa-field desc-field">
+            <label>Description</label>
+            <input type="text" id="qaDesc" placeholder="Optional" autocomplete="off">
+        </div>
+        <button class="qa-save-btn" id="qaSaveBtn">
+            <i class="bi bi-plus-lg"></i> Add
+        </button>
+    </div>
+    <div class="qa-hint">
+        <span><kbd>Enter</kbd> save &amp; add next</span>
+        <span><kbd>Tab</kbd> next field</span>
+        <span>Category &amp; Unit are remembered for next add</span>
+    </div>
+</div>
+
+<!-- ─── Paste-to-Add Area ────────────────────────────── -->
+<div class="paste-area" id="pasteArea">
+    <label style="font-weight:600;font-size:.85rem;color:var(--navy-dark);display:block;margin-bottom:.4rem">
+        <i class="bi bi-clipboard-data"></i> Paste Products (one per line)
+    </label>
+    <textarea id="pasteText" placeholder="Paste product names here, one per line. Example:&#10;Waterproof Membrane&#10;Primer Coat&#10;Sealant Tape&#10;&#10;Or use format: Name | Brand | Category | Unit&#10;Membrane Pro | BrandX | Membrane | sqm"></textarea>
+    <div class="pa-hint">Paste plain names (one per line) or use pipe-separated format: <code>Name | Brand | Category | Unit</code></div>
+    <div class="paste-bar">
+        <button class="primary" id="pasteImport"><i class="bi bi-check-all"></i> Import All</button>
+        <button id="pasteCancel"><i class="bi bi-x-lg"></i> Cancel</button>
+    </div>
+</div>
+
+<!-- ─── Toolbar ──────────────────────────────────────── -->
+<div class="prod-toolbar">
+    <div class="tg">
+        <i class="bi bi-search" style="color:#9ca3af;font-size:.85rem"></i>
+        <input type="text" class="t-search" id="liveSearch" placeholder="Search products…" autocomplete="off">
+    </div>
+    <div class="tg">
+        <label style="font-size:.78rem;font-weight:600;color:#6b7280">Category:</label>
+        <select class="t-select" id="catFilter">
+            <option value="">All</option>
+            {% for cat in categories %}
+            <option value="{{ cat|lower }}">{{ cat }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="tg" style="border-right:none">
+        <button class="t-btn" id="togglePaste" title="Paste multiple products at once">
+            <i class="bi bi-clipboard-plus"></i> Paste List
+        </button>
+    </div>
+</div>
+
+<!-- ─── Products Grid ────────────────────────────────── -->
+<div class="grid-wrap">
+    <div class="grid-scroll">
+        <table class="pgrid" id="prodGrid">
+            <thead>
+                <tr>
+                    <th style="width:40px;background:#eef0f4">#</th>
+                    <th data-col="name">Name <i class="bi bi-arrow-down-up" style="font-size:.6rem;opacity:.4"></i></th>
+                    <th data-col="brand">Brand <i class="bi bi-arrow-down-up" style="font-size:.6rem;opacity:.4"></i></th>
+                    <th data-col="category">Category</th>
+                    <th>Unit</th>
+                    <th>Description</th>
+                    <th style="width:80px;text-align:center">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="gridBody">
+                {% for product in products %}
+                <tr data-id="{{ product.id }}" data-name="{{ product.name|lower }}" data-brand="{{ (product.brand or '')|lower }}" data-category="{{ (product.category or '')|lower }}">
+                    <td class="rn">{{ loop.index }}</td>
+                    <td class="cn editable" data-field="name">{{ product.name }}</td>
+                    <td class="editable" data-field="brand">{{ product.brand or '—' }}</td>
+                    <td>
+                        {% if product.category %}
+                        <span class="cat-badge cat-{{ product.category|lower }}">{{ product.category }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>{{ product.unit or '—' }}</td>
+                    <td class="editable" data-field="description" title="{{ product.description or '' }}" style="max-width:200px;overflow:hidden;text-overflow:ellipsis">{{ (product.description or '—')[:50] }}{% if product.description and product.description|length > 50 %}…{% endif %}</td>
+                    <td>
+                        <div class="act-group">
+                            <a href="{{ url_for('edit_product', id=product.id) }}" class="act-btn edit" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <button class="act-btn del delete-btn" data-id="{{ product.id }}" title="Delete"><i class="bi bi-trash3"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr id="noDataRow">
+                    <td class="no-data" colspan="7">
+                        <i class="bi bi-inbox"></i>
+                        No products yet. Type a name above and press <kbd>Enter</kbd> to add your first product!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="grid-status">
+        <div><strong id="totalCount">{{ products|length }}</strong> products · <strong id="visCount">{{ products|length }}</strong> visible</div>
+        <div><kbd>Enter</kbd> save · <kbd>Esc</kbd> cancel · Double-click cell to edit</div>
+    </div>
+</div>
+
+<div class="toast-msg" id="toastMsg"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+    const body = document.getElementById('gridBody');
+    const searchEl = document.getElementById('liveSearch');
+    const catEl = document.getElementById('catFilter');
+    let sessionAdded = 0;
+
+    function toast(msg){
+        const t=document.getElementById('toastMsg');t.textContent=msg;t.classList.add('show');
+        setTimeout(()=>t.classList.remove('show'),2000);
+    }
+    function renum(){
+        let i=1;body.querySelectorAll('tr[data-id]').forEach(r=>{if(r.style.display!=='none')r.querySelector('.rn').textContent=i++;});
+    }
+    function updateCounts(){
+        const total=body.querySelectorAll('tr[data-id]').length;
+        document.getElementById('totalCount').textContent=total;
+        filterRows();
+    }
+
+    // ── Search & Filter ──
+    function filterRows(){
+        const q=searchEl.value.trim().toLowerCase(),cat=catEl.value;let v=0;
+        body.querySelectorAll('tr[data-id]').forEach(r=>{
+            const mS=!q||r.dataset.name.includes(q)||r.dataset.brand.includes(q);
+            const mC=!cat||r.dataset.category===cat;
+            const show=mS&&mC;r.style.display=show?'':'none';if(show)v++;
+        });
+        document.getElementById('visCount').textContent=v;renum();
+    }
+    searchEl.addEventListener('input',filterRows);
+    catEl.addEventListener('change',filterRows);
+
+    // ── Quick Add (always visible) ──
+    const qaName = document.getElementById('qaName');
+    const qaBrand = document.getElementById('qaBrand');
+    const qaCat = document.getElementById('qaCat');
+    const qaUnit = document.getElementById('qaUnit');
+    const qaDesc = document.getElementById('qaDesc');
+    const qaSaveBtn = document.getElementById('qaSaveBtn');
+    const addedCountEl = document.getElementById('addedCount');
+
+    // Enter on any field = save
+    [qaName, qaBrand, qaDesc].forEach(el=>{
+        el.addEventListener('keydown', e=>{
+            if(e.key==='Enter'){e.preventDefault();saveQuick();}
+        });
+    });
+    qaSaveBtn.addEventListener('click', saveQuick);
+
+    function saveQuick(){
+        const name = qaName.value.trim();
+        if(!name){qaName.focus();qaName.style.borderColor='#dc2626';setTimeout(()=>qaName.style.borderColor='',1000);return;}
+
+        const data = {
+            name,
+            brand: qaBrand.value.trim(),
+            category: qaCat.value,
+            unit: qaUnit.value,
+            description: qaDesc.value.trim()
+        };
+
+        // Disable button during save
+        qaSaveBtn.disabled = true;
+        qaSaveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+
+        fetch('/api/products/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+        .then(r=>r.json()).then(p=>{
+            qaSaveBtn.disabled = false;
+            qaSaveBtn.innerHTML = '<i class="bi bi-plus-lg"></i> Add';
+
+            if(p.error){alert(p.error);return;}
+
+            appendRow(p, true);
+
+            // Clear only name, brand, description — keep category & unit sticky
+            qaName.value = '';
+            qaBrand.value = '';
+            qaDesc.value = '';
+            qaName.focus();
+
+            sessionAdded++;
+            addedCountEl.style.display = '';
+            addedCountEl.textContent = sessionAdded + ' added';
+
+            toast('✓ ' + p.name + ' added');
+            updateCounts();
+            const nd = document.getElementById('noDataRow'); if(nd) nd.remove();
+        }).catch(()=>{
+            qaSaveBtn.disabled = false;
+            qaSaveBtn.innerHTML = '<i class="bi bi-plus-lg"></i> Add';
+            alert('Failed to save. Try again.');
+        });
+    }
+
+    function appendRow(p, highlight){
+        const catLow = (p.category||'').toLowerCase();
+        const tr = document.createElement('tr');
+        tr.dataset.id = p.id;
+        tr.dataset.name = (p.name||'').toLowerCase();
+        tr.dataset.brand = (p.brand||'').toLowerCase();
+        tr.dataset.category = catLow;
+        if(highlight) tr.className = 'just-added';
+        tr.innerHTML = `<td class="rn"></td><td class="cn editable" data-field="name">${esc(p.name)}</td><td class="editable" data-field="brand">${esc(p.brand)||'—'}</td><td>${p.category?'<span class="cat-badge cat-'+catLow+'">'+esc(p.category)+'</span>':'—'}</td><td>${esc(p.unit)||'—'}</td><td class="editable" data-field="description" style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${esc((p.description||'—').substring(0,50))}</td><td><div class="act-group"><a href="/products/edit/${p.id}" class="act-btn edit" title="Edit"><i class="bi bi-pencil"></i></a><button class="act-btn del delete-btn" data-id="${p.id}" title="Delete"><i class="bi bi-trash3"></i></button></div></td>`;
+        // Insert at top of data rows
+        const firstData = body.querySelector('tr[data-id]');
+        if(firstData) body.insertBefore(tr, firstData);
+        else body.appendChild(tr);
+    }
+
+    function esc(s){if(!s)return '';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+    // ── Paste-to-Add ──
+    const pasteArea = document.getElementById('pasteArea');
+    document.getElementById('togglePaste').addEventListener('click',function(){
+        pasteArea.classList.toggle('show');
+        this.classList.toggle('active');
+        if(pasteArea.classList.contains('show')) document.getElementById('pasteText').focus();
+    });
+    document.getElementById('pasteCancel').addEventListener('click',()=>{
+        pasteArea.classList.remove('show');
+        document.getElementById('togglePaste').classList.remove('active');
+        document.getElementById('pasteText').value='';
+    });
+
+    document.getElementById('pasteImport').addEventListener('click',function(){
+        const text = document.getElementById('pasteText').value.trim();
+        if(!text){alert('Paste some product names first.');return;}
+
+        const lines = text.split('\n').map(l=>l.trim()).filter(l=>l);
+        const items = lines.map(line=>{
+            const parts = line.split('|').map(p=>p.trim());
+            return {
+                name: parts[0] || '',
+                brand: parts[1] || '',
+                category: parts[2] || qaCat.value,
+                unit: parts[3] || qaUnit.value,
+                description: parts[4] || ''
+            };
+        }).filter(i=>i.name);
+
+        if(!items.length){alert('No valid product names found.');return;}
+
+        this.disabled = true;
+        this.innerHTML = '<i class="bi bi-hourglass-split"></i> Importing…';
+
+        Promise.all(items.map(d=>
+            fetch('/api/products/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(r=>r.json())
+        )).then(results=>{
+            const ok = results.filter(r=>!r.error);
+            ok.forEach(p=>appendRow(p, true));
+            sessionAdded += ok.length;
+            addedCountEl.style.display='';
+            addedCountEl.textContent=sessionAdded+' added';
+            toast('✓ '+ok.length+' products imported');
+            updateCounts();
+            pasteArea.classList.remove('show');
+            document.getElementById('togglePaste').classList.remove('active');
+            document.getElementById('pasteText').value='';
+            this.disabled=false;
+            this.innerHTML='<i class="bi bi-check-all"></i> Import All';
+            const nd=document.getElementById('noDataRow');if(nd)nd.remove();
+        });
+    });
+
+    // ── Inline Edit (double-click) ──
+    body.addEventListener('dblclick',function(e){
+        const td=e.target.closest('td.editable');if(!td||td.querySelector('input'))return;
+        const tr=td.closest('tr');const id=tr.dataset.id;if(!id)return;
+        const field=td.dataset.field;const orig=td.textContent.trim();const origVal=orig==='—'?'':orig;
+        const input=document.createElement('input');input.className='ie-input';input.value=origVal;
+        td.textContent='';td.appendChild(input);input.focus();input.select();
+        function cancel(){td.textContent=orig;}
+        function save(){
+            const v=input.value.trim();if(field==='name'&&!v){cancel();return;}
+            fetch('/api/products/edit/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({[field]:v})})
+            .then(r=>r.json()).then(p=>{
+                td.textContent=v||'—';
+                if(field==='name'){td.classList.add('cn');tr.dataset.name=v.toLowerCase();}
+                if(field==='brand')tr.dataset.brand=v.toLowerCase();
+                toast('✓ Updated');
+            });
+        }
+        input.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();save();}if(ev.key==='Escape')cancel();});
+        input.addEventListener('blur',()=>setTimeout(cancel,150));
+    });
+
+    // ── Delete ──
+    body.addEventListener('click',function(e){
+        const btn=e.target.closest('.delete-btn');if(!btn)return;
+        if(!confirm('Delete this product?'))return;
+        fetch('/api/products/delete/'+btn.dataset.id,{method:'POST'}).then(r=>r.json()).then(()=>{
+            btn.closest('tr').remove();toast('✓ Deleted');updateCounts();
+        });
+    });
+
+    // ── Column Sorting ──
+    const sortState={};
+    document.querySelectorAll('th[data-col]').forEach(th=>{
+        th.addEventListener('click',()=>{
+            const col=th.dataset.col;
+            const dir=sortState[col]==='asc'?'desc':'asc';sortState[col]=dir;
+            const rows=Array.from(body.querySelectorAll('tr[data-id]'));
+            rows.sort((a,b)=>{
+                const va=a.dataset[col]||'',vb=b.dataset[col]||'';
+                return dir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+            });
+            rows.forEach(r=>body.appendChild(r));renum();
+        });
+    });
+
+    // ── Ctrl+F ──
+    document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='f'){e.preventDefault();searchEl.focus();searchEl.select();}});
+
+    // Auto-focus the name input
+    qaName.focus();
+})();
+</script>
+{% endblock %}

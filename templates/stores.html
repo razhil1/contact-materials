@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Stores - Waterproof Price Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-shop"></i> Stores</h1>
+    <a href="{{ url_for('add_store') }}" class="btn btn-primary-custom">
+        <i class="bi bi-plus-circle"></i> Add Store
+    </a>
+</div>
+
+<!-- Stores Grid -->
+<div class="row g-4">
+    {% for store in stores %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header" style="background-color: var(--navy-dark); color: white;">
+                <h5 class="mb-0"><i class="bi bi-shop"></i> {{ store.name }}</h5>
+            </div>
+            <div class="card-body">
+                {% if store.location %}
+                <p class="mb-2"><i class="bi bi-geo-alt text-muted"></i> <strong>Location:</strong> {{ store.location }}</p>
+                {% endif %}
+                {% if store.contact_person %}
+                <p class="mb-2"><i class="bi bi-person text-muted"></i> <strong>Contact:</strong> {{ store.contact_person }}</p>
+                {% endif %}
+                {% if store.phone %}
+                <p class="mb-2"><i class="bi bi-telephone text-muted"></i> <strong>Phone:</strong> {{ store.phone }}</p>
+                {% endif %}
+                {% if store.notes %}
+                <p class="mb-0 text-muted small"><i class="bi bi-chat-left-text"></i> {{ store.notes[:80] }}{% if store.notes|length > 80 %}...{% endif %}</p>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white border-top-0">
+                <a href="{{ url_for('edit_store', id=store.id) }}" class="btn btn-sm-custom btn-edit">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <form action="{{ url_for('delete_store', id=store.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this store?');">
+                    <button type="submit" class="btn btn-sm-custom btn-delete">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="bi bi-shop display-1 text-muted"></i>
+            <h4 class="mt-3 text-muted">No stores found</h4>
+            <p class="text-muted">Start by adding your first store!</p>
+            <a href="{{ url_for('add_store') }}" class="btn btn-primary-custom">
+                <i class="bi bi-plus-circle"></i> Add Store
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

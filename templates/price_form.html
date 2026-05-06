@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Price Entry - Waterproof Price Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-cash-stack"></i> {{ action }} Price Entry</h1>
+    <a href="{{ url_for('prices') }}" class="btn btn-primary-custom">
+        <i class="bi bi-arrow-left"></i> Back to Price Log
+    </a>
+</div>
+
+<div class="form-custom">
+    <form method="POST">
+        <div class="mb-3">
+            <label for="product_id" class="form-label">Product <span class="text-danger">*</span></label>
+            <select name="product_id" id="product_id" class="form-select" required>
+                <option value="">-- Select Product --</option>
+                {% for product in products %}
+                <option value="{{ product.id }}" {% if entry and entry.product_id == product.id %}selected{% endif %}>
+                    {{ product.name }} ({{ product.unit }}) - {{ product.brand }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="mb-3">
+            <label for="store_id" class="form-label">Store <span class="text-danger">*</span></label>
+            <select name="store_id" id="store_id" class="form-select" required>
+                <option value="">-- Select Store --</option>
+                {% for store in stores %}
+                <option value="{{ store.id }}" {% if entry and entry.store_id == store.id %}selected{% endif %}>
+                    {{ store.name }} - {{ store.location }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="mb-3">
+            <label for="price" class="form-label">Price (₱) <span class="text-danger">*</span></label>
+            <input type="number" name="price" id="price" class="form-control" step="0.01" min="0" 
+                   value="{{ entry.price if entry else '' }}" placeholder="0.00" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="date_checked" class="form-label">Date Checked</label>
+            <input type="date" name="date_checked" id="date_checked" class="form-control" 
+                   value="{{ entry.date_checked.strftime('%Y-%m-%d') if entry else today }}" 
+                   max="{{ today }}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea name="notes" id="notes" class="form-control" rows="3" 
+                      placeholder="Optional notes about this price...">{{ entry.notes if entry else '' }}</textarea>
+        </div>
+        
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary-custom btn-lg">
+                <i class="bi bi-check-circle"></i> {{ action }} Price Entry
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date to today if not set
+    const dateInput = document.getElementById('date_checked');
+    if (!dateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+});
+</script>
+{% endblock %}

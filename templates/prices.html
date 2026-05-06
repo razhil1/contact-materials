@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+
+{% block title %}Price Log - Waterproof Price Tracker{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Price Log Spreadsheet Styles ────────────────────── */
+.pricelog-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--white);
+    border: 1px solid #d0d5dd;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    padding: 0.5rem 0.75rem;
+    flex-wrap: wrap;
+}
+.pricelog-toolbar .toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-right: 0.75rem;
+    border-right: 1px solid #e0e0e0;
+}
+.pricelog-toolbar .toolbar-group:last-child { border-right: none; }
+
+.pl-search {
+    border: 1px solid #d0d5dd;
+    border-radius: 4px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.82rem;
+    width: 180px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.pl-search:focus { border-color: var(--accent-orange); }
+
+.pl-select {
+    border: 1px solid #d0d5dd;
+    border-radius: 4px;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.82rem;
+    background: white;
+    cursor: pointer;
+}
+
+.pl-date-input {
+    border: 1px solid #d0d5dd;
+    border-radius: 4px;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.82rem;
+    background: white;
+    cursor: pointer;
+    width: 130px;
+}
+.pl-date-input:focus { border-color: var(--accent-orange); outline: none; }
+
+.pl-btn {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+    color: var(--navy-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.15s;
+    white-space: nowrap;
+    text-decoration: none;
+}
+.pl-btn:hover { background: #f0f4ff; border-color: #d0d5dd; }
+.pl-btn-accent {
+    background: var(--accent-orange);
+    color: white;
+    border-color: var(--accent-orange);
+}
+.pl-btn-accent:hover { background: #c94d03; color: white; }
+
+/* Grid wrapper */
+.pricelog-wrapper {
+    border: 1px solid #d0d5dd;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    background: var(--white);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.pricelog-scroll {
+    overflow: auto;
+    max-height: calc(100vh - 260px);
+}
+
+/* Table */
+.pricelog-grid {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    font-size: 0.83rem;
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+}
+
+.pricelog-grid thead th {
+    background: #f3f4f6;
+    color: #374151;
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.55rem 0.7rem;
+    border-bottom: 2px solid #d0d5dd;
+    border-right: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    white-space: nowrap;
+    user-select: none;
+    cursor: pointer;
+}
+.pricelog-grid thead th:hover { background: #e8ebf0; }
+
+.pricelog-grid tbody td {
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid #f0f0f0;
+    border-right: 1px solid #f0f0f0;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.pricelog-grid tbody tr:hover td {
+    background-color: #fef3c7 !important;
+}
+.pricelog-grid tbody tr:nth-child(even) td {
+    background: #fafbfc;
+}
+
+/* Row number */
+.pricelog-grid .row-num {
+    background: #f9fafb;
+    color: #9ca3af;
+    font-size: 0.72rem;
+    text-align: center;
+    font-weight: 500;
+    width: 40px;
+    user-select: none;
+}
+
+/* Price cell */
+.pricelog-grid .cell-price {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    color: var(--navy-dark);
+    text-align: right;
+    font-size: 0.85rem;
+}
+
+/* Date cell */
+.pricelog-grid .cell-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    color: #4b5563;
+}
+
+/* Product cell */
+.pricelog-grid .cell-product {
+    font-weight: 600;
+    color: var(--navy-dark);
+}
+
+/* Store cell */
+.pricelog-grid .cell-store {
+    color: #6b7280;
+}
+
+/* Category badge */
+.cat-badge {
+    display: inline-block;
+    padding: 0.12rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+.cat-membrane  { background: #dbeafe; color: #1e40af; }
+.cat-coating   { background: #fce7f3; color: #9d174d; }
+.cat-primer    { background: #d1fae5; color: #065f46; }
+.cat-sealant   { background: #fef3c7; color: #92400e; }
+.cat-adhesive  { background: #ede9fe; color: #5b21b6; }
+.cat-accessory { background: #e0e7ff; color: #3730a3; }
+
+/* Notes cell */
+.cell-notes {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #9ca3af;
+    font-size: 0.8rem;
+}
+
+/* Actions */
+.action-group {
+    display: flex;
+    gap: 0.3rem;
+}
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    font-size: 0.8rem;
+}
+.action-btn:hover { background: #f3f4f6; color: var(--navy-dark); }
+.action-btn.edit:hover { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+.action-btn.delete:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+
+/* Status bar */
+.pricelog-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.4rem 0.75rem;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* No-data */
+.no-data-cell {
+    text-align: center;
+    padding: 3rem 1rem !important;
+    color: #9ca3af;
+}
+.no-data-cell i { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-cash-stack"></i> Price Log</h1>
+    <a href="{{ url_for('add_price') }}" class="btn btn-primary-custom">
+        <i class="bi bi-plus-circle"></i> Add Price Entry
+    </a>
+</div>
+
+<!-- Toolbar (replaces old filter bar) -->
+<form method="GET" action="{{ url_for('prices') }}" id="filterForm">
+<div class="pricelog-toolbar">
+    <div class="toolbar-group">
+        <i class="bi bi-search" style="color:#9ca3af;font-size:0.85rem;"></i>
+        <input type="text" class="pl-search" id="liveSearch" placeholder="Quick search…" autocomplete="off">
+    </div>
+    <div class="toolbar-group">
+        <label style="font-size:0.78rem;font-weight:600;color:#6b7280;">Product:</label>
+        <select name="product_id" class="pl-select" onchange="document.getElementById('filterForm').submit();">
+            <option value="">All Products</option>
+            {% for product in products %}
+            <option value="{{ product.id }}" {% if product_filter == product.id %}selected{% endif %}>
+                {{ product.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="toolbar-group">
+        <label style="font-size:0.78rem;font-weight:600;color:#6b7280;">Store:</label>
+        <select name="store_id" class="pl-select" onchange="document.getElementById('filterForm').submit();">
+            <option value="">All Stores</option>
+            {% for store in stores %}
+            <option value="{{ store.id }}" {% if store_filter == store.id %}selected{% endif %}>
+                {{ store.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="toolbar-group">
+        <label style="font-size:0.78rem;font-weight:600;color:#6b7280;">From:</label>
+        <input type="date" name="date_from" class="pl-date-input" value="{{ date_from or '' }}" onchange="document.getElementById('filterForm').submit();">
+        <label style="font-size:0.78rem;font-weight:600;color:#6b7280;">To:</label>
+        <input type="date" name="date_to" class="pl-date-input" value="{{ date_to or '' }}" onchange="document.getElementById('filterForm').submit();">
+    </div>
+    <div class="toolbar-group" style="border-right:none;">
+        {% if product_filter or store_filter or date_from or date_to %}
+        <a href="{{ url_for('prices') }}" class="pl-btn" style="color:var(--danger-red);">
+            <i class="bi bi-x-circle"></i> Clear
+        </a>
+        {% endif %}
+    </div>
+</div>
+</form>
+
+<!-- Spreadsheet Grid -->
+<div class="pricelog-wrapper">
+    <div class="pricelog-scroll">
+        <table class="pricelog-grid" id="priceLogGrid">
+            <thead>
+                <tr>
+                    <th style="width:40px;background:#eef0f4;">#</th>
+                    <th data-col="date">Date <i class="bi bi-arrow-down-up" style="font-size:0.6rem;opacity:0.4;"></i></th>
+                    <th data-col="product">Product <i class="bi bi-arrow-down-up" style="font-size:0.6rem;opacity:0.4;"></i></th>
+                    <th>Category</th>
+                    <th data-col="store">Store <i class="bi bi-arrow-down-up" style="font-size:0.6rem;opacity:0.4;"></i></th>
+                    <th data-col="price" style="text-align:right;">Price (₱) <i class="bi bi-arrow-down-up" style="font-size:0.6rem;opacity:0.4;"></i></th>
+                    <th>Notes</th>
+                    <th style="width:80px;text-align:center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="logBody">
+                {% for entry in price_entries %}
+                <tr data-search="{{ entry.product.name|lower }} {{ entry.store.name|lower }} {{ entry.notes|lower if entry.notes else '' }}">
+                    <td class="row-num">{{ loop.index }}</td>
+                    <td class="cell-date">{{ entry.date_checked.strftime('%Y-%m-%d') }}</td>
+                    <td class="cell-product">{{ entry.product.name }}</td>
+                    <td>
+                        {% if entry.product.category %}
+                        <span class="cat-badge cat-{{ entry.product.category|lower }}">{{ entry.product.category }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="cell-store">{{ entry.store.name }}</td>
+                    <td class="cell-price">₱{{ "{:,.2f}".format(entry.price) }}</td>
+                    <td class="cell-notes" title="{{ entry.notes or '' }}">{{ entry.notes or '—' }}</td>
+                    <td>
+                        <div class="action-group" style="justify-content:center;">
+                            <a href="{{ url_for('edit_price', id=entry.id) }}" class="action-btn edit" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form action="{{ url_for('delete_price', id=entry.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this price entry?');">
+                                <button type="submit" class="action-btn delete" title="Delete">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td class="no-data-cell" colspan="8">
+                        <i class="bi bi-inbox"></i>
+                        No price entries found. <a href="{{ url_for('add_price') }}">Add your first price entry!</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="pricelog-status">
+        <div>
+            <strong id="totalEntries">{{ price_entries|length }}</strong> entries
+            · <strong id="visibleEntries">{{ price_entries|length }}</strong> visible
+        </div>
+        <div>
+            <kbd>Ctrl+F</kbd> search · Click column header to sort
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const logBody = document.getElementById('logBody');
+    const searchInput = document.getElementById('liveSearch');
+
+    // ── Live Search (client-side) ────────────────────
+    searchInput.addEventListener('input', function() {
+        const q = this.value.trim().toLowerCase();
+        let visible = 0;
+
+        logBody.querySelectorAll('tr').forEach(tr => {
+            if (!tr.dataset.search) return;
+            const match = !q || tr.dataset.search.includes(q);
+            tr.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        document.getElementById('visibleEntries').textContent = visible;
+    });
+
+    // ── Column Sorting ───────────────────────────────
+    const sortState = {};
+
+    document.querySelectorAll('th[data-col]').forEach(th => {
+        th.addEventListener('click', () => {
+            const col = th.dataset.col;
+            const dir = sortState[col] === 'asc' ? 'desc' : 'asc';
+            sortState[col] = dir;
+
+            const rows = Array.from(logBody.querySelectorAll('tr[data-search]'));
+
+            rows.sort((a, b) => {
+                let va, vb;
+                if (col === 'date') {
+                    va = a.querySelector('.cell-date').textContent.trim();
+                    vb = b.querySelector('.cell-date').textContent.trim();
+                } else if (col === 'product') {
+                    va = a.querySelector('.cell-product').textContent.trim().toLowerCase();
+                    vb = b.querySelector('.cell-product').textContent.trim().toLowerCase();
+                } else if (col === 'store') {
+                    va = a.querySelector('.cell-store').textContent.trim().toLowerCase();
+                    vb = b.querySelector('.cell-store').textContent.trim().toLowerCase();
+                } else if (col === 'price') {
+                    va = parseFloat(a.querySelector('.cell-price').textContent.replace(/[₱,]/g, '')) || 0;
+                    vb = parseFloat(b.querySelector('.cell-price').textContent.replace(/[₱,]/g, '')) || 0;
+                    return dir === 'asc' ? va - vb : vb - va;
+                }
+                if (dir === 'asc') return va < vb ? -1 : va > vb ? 1 : 0;
+                return va > vb ? -1 : va < vb ? 1 : 0;
+            });
+
+            rows.forEach((r, i) => {
+                logBody.appendChild(r);
+                r.querySelector('.row-num').textContent = i + 1;
+            });
+        });
+    });
+
+    // ── Ctrl+F shortcut ──────────────────────────────
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+{% block title %}Compare Prices - Waterproof Price Tracker{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Category Tabs ─────────────────────────────────── */
+.cat-tabs{display:flex;gap:0;background:#fff;border:1px solid #d0d5dd;border-bottom:none;border-radius:10px 10px 0 0;overflow-x:auto;padding:0;scrollbar-width:thin}
+.cat-tab{padding:.6rem 1rem;font-size:.78rem;font-weight:600;color:#6b7280;cursor:pointer;border:none;background:none;white-space:nowrap;border-bottom:3px solid transparent;transition:all .15s;display:flex;align-items:center;gap:.35rem}
+.cat-tab:hover{color:var(--navy-dark);background:#f8fafc}
+.cat-tab.active{color:var(--accent-orange);border-bottom-color:var(--accent-orange);background:#fffbeb}
+.cat-tab .tab-count{background:#e5e7eb;color:#6b7280;border-radius:10px;padding:.05rem .45rem;font-size:.68rem;font-weight:700}
+.cat-tab.active .tab-count{background:var(--accent-orange);color:#fff}
+
+/* ── Toolbar ───────────────────────────────────────── */
+.sp-toolbar{display:flex;align-items:center;gap:.75rem;background:#fff;border:1px solid #d0d5dd;border-top:none;border-bottom:none;padding:.45rem .75rem;flex-wrap:wrap}
+.sp-toolbar .tg{display:flex;align-items:center;gap:.5rem;padding-right:.75rem;border-right:1px solid #e0e0e0}
+.sp-toolbar .tg:last-child{border-right:none}
+.t-search{border:1px solid #d0d5dd;border-radius:4px;padding:.3rem .6rem;font-size:.82rem;width:180px;outline:none}
+.t-search:focus{border-color:var(--accent-orange)}
+.t-btn{background:none;border:1px solid transparent;border-radius:4px;padding:.3rem .6rem;font-size:.82rem;cursor:pointer;color:var(--navy-dark);display:flex;align-items:center;gap:.3rem;transition:all .15s;white-space:nowrap;text-decoration:none}
+.t-btn:hover{background:#f0f4ff;border-color:#d0d5dd}
+
+/* ── Spreadsheet ───────────────────────────────────── */
+.sp-wrapper{border:1px solid #d0d5dd;border-top:none;border-radius:0 0 8px 8px;overflow:hidden;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.sp-scroll{overflow:auto;max-height:calc(100vh - 300px)}
+
+.sp{border-collapse:separate;border-spacing:0;width:100%;font-size:.83rem;font-family:'IBM Plex Sans',sans-serif;table-layout:auto}
+.sp thead th{background:#f3f4f6;color:#374151;font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.03em;padding:.5rem .6rem;border-bottom:2px solid #d0d5dd;border-right:1px solid #e5e7eb;position:sticky;top:0;z-index:20;white-space:nowrap;user-select:none}
+.sp thead th.frozen{position:sticky;z-index:30}
+.sp .col0{left:0;min-width:36px;width:36px}.sp .col1{left:36px;min-width:180px}
+
+.sp tbody td{padding:.45rem .6rem;border-bottom:1px solid #f0f0f0;border-right:1px solid #f0f0f0;vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp tbody tr:hover td{background:#fef3c7!important}
+.sp tbody tr:nth-child(even) td{background:#fafbfc}
+.sp tbody td.frozen{position:sticky;z-index:15;background:#fff}
+.sp tbody tr:nth-child(even) td.frozen{background:#fafbfc}
+.sp tbody tr:hover td.frozen{background:#fef3c7!important}
+
+.sp .rn{background:#f9fafb!important;color:#9ca3af;font-size:.72rem;text-align:center;user-select:none}
+.sp .cn{font-weight:600;color:var(--navy-dark)}
+
+/* Price cells */
+.sp .cp{font-family:'IBM Plex Mono',monospace;font-size:.82rem;text-align:right;cursor:pointer}
+.sp .cp:hover{outline:2px solid var(--accent-orange);outline-offset:-2px;border-radius:2px}
+.cell-best{background:#dcfce7!important;color:#166534!important;font-weight:700!important}
+.cell-worst{background:#fee2e2!important;color:#991b1b!important;font-weight:600!important}
+.cell-empty{color:#d1d5db;text-align:center;font-style:italic}
+.cs{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.82rem;text-align:right;background:#f8fafc!important}
+.cs.best{color:#166534}.cs.worst{color:#991b1b}.cs.diff{color:var(--accent-orange)}
+
+.store-hdr{display:flex;flex-direction:column;gap:1px}
+.store-hdr .loc{font-size:.63rem;font-weight:400;color:#9ca3af;text-transform:none;letter-spacing:0}
+
+/* Cat badge */
+.cat-badge{display:inline-block;padding:.12rem .4rem;border-radius:3px;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.02em}
+.cat-masonry{background:#fde68a;color:#92400e}.cat-scaffolding{background:#e0e7ff;color:#3730a3}
+.cat-plumbing{background:#dbeafe;color:#1e40af}.cat-painting{background:#fce7f3;color:#9d174d}
+.cat-tile-works{background:#d1fae5;color:#065f46}.cat-steels{background:#e5e7eb;color:#374151}
+.cat-woods-boards{background:#fef3c7;color:#78350f}.cat-glass-aluminum{background:#cffafe;color:#155e75}
+.cat-miscellaneous{background:#f3e8ff;color:#6b21a8}.cat-safety{background:#fee2e2;color:#991b1b}
+
+/* Quick Add Row */
+.qa-row td{background:#fffbeb!important;border-bottom:2px solid var(--accent-orange)}
+.qa-row td.frozen{background:#fffbeb!important}
+.qa-input{border:1px solid #d0d5dd;border-radius:3px;padding:.25rem .4rem;font-size:.8rem;width:100%;background:#fff}
+.qa-input:focus{border-color:var(--accent-orange);outline:none}
+.qa-select{border:1px solid #d0d5dd;border-radius:3px;padding:.25rem .4rem;font-size:.8rem;width:100%;background:#fff}
+.qa-btn{background:var(--accent-orange);color:#fff;border:none;border-radius:3px;padding:.25rem .5rem;font-size:.75rem;font-weight:600;cursor:pointer}
+.qa-btn:hover{background:#c94d03}
+.qa-msg{font-size:.75rem;color:#92400e;margin-left:.5rem;font-weight:600}
+.cat-tools{background:#d1d5db;color:#1f2937}.cat-pats-products{background:#ede9fe;color:#5b21b6}
+.cat-raw-materials{background:#ffedd5;color:#9a3412}
+
+/* Legend */
+.legend{display:flex;gap:1rem;align-items:center;font-size:.78rem;color:#6b7280}
+.legend-item{display:flex;align-items:center;gap:.3rem}
+.legend-sw{width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.1)}
+
+/* Status bar */
+.sp-status{display:flex;align-items:center;justify-content:space-between;padding:.4rem .75rem;background:#f9fafb;border-top:1px solid #e5e7eb;font-size:.75rem;color:#6b7280}
+
+/* Inline edit */
+.ie-input{width:100%;border:2px solid var(--accent-orange);border-radius:3px;padding:.2rem .4rem;font-family:'IBM Plex Mono',monospace;font-size:.82rem;text-align:right;outline:none;background:#fffbeb}
+
+/* Empty category */
+.empty-cat{text-align:center;padding:2.5rem 1rem;color:#9ca3af;font-size:.9rem}
+.empty-cat i{font-size:1.8rem;display:block;margin-bottom:.4rem}
+
+/* Toast */
+.toast-msg{position:fixed;bottom:20px;right:20px;background:#065f46;color:#fff;padding:.6rem 1.2rem;border-radius:8px;font-size:.85rem;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15);opacity:0;transition:opacity .3s;pointer-events:none}
+.toast-msg.show{opacity:1}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-table"></i> Price Comparison</h1>
+    <div style="display:flex;gap:.5rem;">
+        <a href="{{ url_for('add_price') }}" class="btn btn-primary-custom"><i class="bi bi-plus-circle"></i> Add Price</a>
+        <a href="{{ url_for('export_comparison') }}" class="btn btn-primary-custom" style="background:var(--navy-blue);border-color:var(--navy-blue);"><i class="bi bi-file-earmark-excel"></i> Export</a>
+    </div>
+</div>
+
+<!-- ── Category Tabs ────────────────────────────────── -->
+<div class="cat-tabs" id="catTabs">
+    <button class="cat-tab active" data-cat="all">
+        <i class="bi bi-grid-3x3-gap"></i> All
+        <span class="tab-count" id="countAll">{{ matrix_data|length }}</span>
+    </button>
+    {% for cat in categories %}
+    <button class="cat-tab" data-cat="{{ cat|lower }}">
+        {{ cat }}
+        <span class="tab-count" id="count{{ loop.index }}">0</span>
+    </button>
+    {% endfor %}
+    <button class="cat-tab" data-cat="uncategorized">
+        Uncategorized
+        <span class="tab-count" id="countUncat">0</span>
+    </button>
+</div>
+
+<!-- ── Toolbar ───────────────────────────────────────── -->
+<div class="sp-toolbar">
+    <div class="tg">
+        <i class="bi bi-search" style="color:#9ca3af;font-size:.85rem"></i>
+        <input type="text" class="t-search" id="gridSearch" placeholder="Search products…" autocomplete="off">
+    </div>
+    <div class="tg" style="position:relative;">
+        <button class="t-btn" id="storeFilterBtn">
+            <i class="bi bi-shop"></i> Stores (<span id="visibleStoreCount">{{ all_stores|length }}</span>) <i class="bi bi-chevron-down" style="font-size:0.7rem;"></i>
+        </button>
+        <div id="storeFilterDropdown" style="display:none; position:absolute; top:100%; left:0; background:#fff; border:1px solid #d0d5dd; border-radius:4px; padding:0.6rem; z-index:100; max-height:300px; overflow-y:auto; box-shadow:0 4px 12px rgba(0,0,0,0.15); width:220px; margin-top:5px;">
+            <div style="margin-bottom:0.6rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e7eb; padding-bottom:0.4rem;">
+                <span style="font-size:0.75rem; font-weight:600; color:var(--navy-dark);">Visible Stores</span>
+                <div>
+                    <button id="selectAllStores" style="background:none;border:none;color:var(--accent-orange);font-size:0.7rem;cursor:pointer;font-weight:600;padding:0;">All</button>
+                    <span style="color:#d1d5db; margin:0 0.2rem;">|</span>
+                    <button id="clearAllStores" style="background:none;border:none;color:#6b7280;font-size:0.7rem;cursor:pointer;padding:0;">None</button>
+                </div>
+            </div>
+            {% for store in all_stores %}
+            <label style="display:flex; align-items:flex-start; gap:0.4rem; font-size:0.8rem; margin-bottom:0.4rem; cursor:pointer; color:#374151;">
+                <input type="checkbox" class="store-checkbox" value="{{ store.id }}" checked style="margin-top:0.2rem;"> 
+                <span style="line-height:1.2;">{{ store.name }}<br><small style="color:#9ca3af; font-size:0.65rem;">{{ store.location or '' }}</small></span>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="tg" style="border-right:none">
+        <div class="legend">
+            <span class="legend-item"><span class="legend-sw" style="background:#dcfce7"></span> Cheapest</span>
+            <span class="legend-item"><span class="legend-sw" style="background:#fee2e2"></span> Most Expensive</span>
+        </div>
+    </div>
+</div>
+
+<!-- ── Spreadsheet Grid ─────────────────────────────── -->
+<div class="sp-wrapper">
+    <div class="sp-scroll" id="spScroll">
+        <table class="sp" id="priceGrid">
+            <thead>
+                <tr>
+                    <th class="frozen col0" style="background:#eef0f4">#</th>
+                    <th class="frozen col1">Product</th>
+                    <th>Brand</th>
+                    <th>Unit</th>
+                    {% for store in all_stores %}
+                    <th class="store-col" data-store-id="{{ store.id }}">
+                        <div class="store-hdr">
+                            <span>{{ store.name }}</span>
+                            <span class="loc">{{ store.location or '' }}</span>
+                        </div>
+                    </th>
+                    {% endfor %}
+                    <th style="background:#f0fdf4">✓ Cheapest</th>
+                    <th style="background:#fef2f2">✗ Highest</th>
+                    <th style="background:#fffbeb">Δ Diff</th>
+                </tr>
+            </thead>
+            <tbody id="gridBody">
+                <tr class="qa-row" id="qaRow">
+                    <td class="rn frozen col0" style="color:var(--accent-orange)"><i class="bi bi-plus-lg"></i></td>
+                    <td class="frozen col1"><input type="text" id="qaName" class="qa-input" placeholder="New product name..." autocomplete="off"></td>
+                    <td><input type="text" id="qaBrand" class="qa-input" placeholder="Brand..." autocomplete="off"></td>
+                    <td>
+                        <select id="qaUnit" class="qa-select">
+                            <option value="">Unit</option>
+                            <option value="bag">bag</option><option value="liter">liter</option>
+                            <option value="sqm">sqm</option><option value="pcs">pcs</option>
+                            <option value="roll">roll</option><option value="set">set</option>
+                            <option value="kg">kg</option><option value="meter">meter</option>
+                            <option value="pair">pair</option><option value="box">box</option>
+                            <option value="gallon">gallon</option><option value="sheet">sheet</option>
+                            <option value="length">length</option>
+                        </select>
+                    </td>
+                    <td colspan="{{ all_stores|length + 3 }}" id="qaRowStoreSpan">
+                        <button class="qa-btn" id="qaSaveBtn">Save &amp; Add</button>
+                        <span class="qa-msg"><span id="qaCatDisplay">All</span> category</span>
+                        <span style="font-size:.7rem;color:#b45309;margin-left:1rem"><kbd>Enter</kbd> to save</span>
+                    </td>
+                </tr>
+                {% for row in matrix_data %}
+                <tr data-product="{{ row.product.name|lower }}" data-category="{{ (row.product.category or '')|lower }}" data-brand="{{ (row.product.brand or '')|lower }}">
+                    <td class="rn frozen col0">{{ loop.index }}</td>
+                    <td class="frozen col1 cn" title="{{ row.product.name }}">{{ row.product.name }}</td>
+                    <td>{{ row.product.brand or '—' }}</td>
+                    <td>{{ row.product.unit or '—' }}</td>
+                    {% for store_data in row.stores %}
+                    <td class="cp store-cell {% if store_data.price is not none %}{% if store_data.price == row.min_price and row.min_price != row.max_price %}cell-best{% elif store_data.price == row.max_price and row.min_price != row.max_price %}cell-worst{% endif %}{% else %}cell-empty{% endif %}"
+                        data-product-id="{{ row.product.id }}" data-store-id="{{ store_data.store.id }}"
+                        data-price="{{ store_data.price if store_data.price is not none else '' }}"
+                        title="{% if store_data.price is not none %}₱{{ '{:,.2f}'.format(store_data.price) }}{% else %}No data — click to add{% endif %}">
+                        {% if store_data.price is not none %}₱{{ "{:,.2f}".format(store_data.price) }}{% else %}—{% endif %}
+                    </td>
+                    {% endfor %}
+                    <td class="cs best">{% if row.min_price is not none %}₱{{ "{:,.2f}".format(row.min_price) }}{% else %}—{% endif %}</td>
+                    <td class="cs worst">{% if row.max_price is not none %}₱{{ "{:,.2f}".format(row.max_price) }}{% else %}—{% endif %}</td>
+                    <td class="cs diff">{% if row.min_price is not none and row.max_price is not none %}₱{{ "{:,.2f}".format(row.max_price - row.min_price) }}{% else %}—{% endif %}</td>
+                </tr>
+                {% else %}
+                <tr id="noDataRow">
+                    <td class="empty-cat" colspan="{{ 4 + all_stores|length + 3 }}">
+                        <i class="bi bi-inbox"></i>
+                        No price data yet. <a href="{{ url_for('add_price') }}">Add your first price entry</a>.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="sp-status">
+        <div><strong id="statTotal">{{ matrix_data|length }}</strong> products · <strong>{{ all_stores|length }}</strong> stores · <strong id="statVisible">{{ matrix_data|length }}</strong> showing</div>
+        <div><kbd>Click</kbd> price to edit · <kbd>Esc</kbd> cancel · <kbd>Enter</kbd> save</div>
+    </div>
+</div>
+
+<div class="toast-msg" id="toastMsg"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+    const body=document.getElementById('gridBody');
+    const search=document.getElementById('gridSearch');
+    const tabs=document.querySelectorAll('.cat-tab');
+    let activeCat='all';
+
+    function toast(m){const t=document.getElementById('toastMsg');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+    // Count products per category
+    function countCategories(){
+        const counts={all:0,uncategorized:0};
+        const catList={{ categories|tojson }};
+        catList.forEach(c=>{counts[c.toLowerCase()]=0;});
+        body.querySelectorAll('tr[data-category]').forEach(r=>{
+            counts.all++;
+            const c=r.dataset.category.trim();
+            if(!c){counts.uncategorized++;}
+            else if(counts[c]!==undefined){counts[c]++;}
+            else{counts.uncategorized++;}
+        });
+        // Update tab counts
+        tabs.forEach(tab=>{
+            const cat=tab.dataset.cat;
+            const badge=tab.querySelector('.tab-count');
+            if(badge && counts[cat]!==undefined) badge.textContent=counts[cat];
+        });
+    }
+    countCategories();
+
+    // Tab switching
+    tabs.forEach(tab=>{
+        tab.addEventListener('click',function(){
+            tabs.forEach(t=>t.classList.remove('active'));
+            this.classList.add('active');
+            activeCat=this.dataset.cat;
+            
+            // Restore store filter for this category
+            restoreStoreFilter();
+            
+            // Update Quick Add category display
+            const catDisplay = document.getElementById('qaCatDisplay');
+            if(activeCat === 'all' || activeCat === 'uncategorized') {
+                catDisplay.textContent = 'Uncategorized';
+            } else {
+                catDisplay.textContent = this.textContent.replace(/[0-9]/g, '').trim();
+            }
+            
+            filterRows();
+        });
+    });
+
+    // Quick Add Product
+    const qaName = document.getElementById('qaName');
+    const qaBrand = document.getElementById('qaBrand');
+    const qaUnit = document.getElementById('qaUnit');
+    const qaSaveBtn = document.getElementById('qaSaveBtn');
+    
+    [qaName, qaBrand].forEach(el => {
+        el.addEventListener('keydown', e => {
+            if(e.key === 'Enter') { e.preventDefault(); saveQuick(); }
+        });
+    });
+    qaSaveBtn.addEventListener('click', saveQuick);
+
+    function saveQuick() {
+        const name = qaName.value.trim();
+        if(!name) { qaName.focus(); return; }
+        
+        let category = '';
+        if(activeCat !== 'all' && activeCat !== 'uncategorized') {
+            const activeTab = document.querySelector('.cat-tab.active');
+            category = activeTab.textContent.replace(/[0-9]/g, '').trim();
+        }
+
+        const data = {
+            name,
+            brand: qaBrand.value.trim(),
+            unit: qaUnit.value,
+            category: category,
+            description: ''
+        };
+
+        qaSaveBtn.disabled = true;
+        qaSaveBtn.textContent = 'Saving...';
+
+        fetch('/api/products/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        }).then(r=>r.json()).then(p=>{
+            if(p.error) { alert(p.error); qaSaveBtn.disabled = false; qaSaveBtn.textContent = 'Save & Add'; return; }
+            
+            // Refresh page to load new product in the matrix
+            window.location.reload();
+        }).catch(()=>{
+            alert('Failed to save.');
+            qaSaveBtn.disabled = false;
+            qaSaveBtn.textContent = 'Save & Add';
+        });
+    }
+
+    // Search + tab filter
+    function filterRows(){
+        const q=search.value.trim().toLowerCase();
+        let vis=0;
+        body.querySelectorAll('tr[data-category]').forEach((r,i)=>{
+            const cat=r.dataset.category.trim();
+            const matchCat = activeCat==='all' ||
+                (activeCat==='uncategorized' && !cat) ||
+                cat===activeCat;
+            const matchSearch = !q || r.dataset.product.includes(q) || r.dataset.brand.includes(q);
+            const show=matchCat&&matchSearch;
+            r.style.display=show?'':'none';
+            if(show){vis++;r.querySelector('.rn').textContent=vis;}
+        });
+        document.getElementById('statVisible').textContent=vis;
+    }
+    search.addEventListener('input',filterRows);
+
+    // Inline cell editing
+    body.addEventListener('click',function(e){
+        const td=e.target.closest('td.cp');
+        if(!td||td.querySelector('input'))return;
+        const cur=td.dataset.price;const pid=td.dataset.productId;const sid=td.dataset.storeId;const orig=td.innerHTML;
+        const input=document.createElement('input');input.type='number';input.step='0.01';input.className='ie-input';input.value=cur||'';input.placeholder='0.00';
+        td.innerHTML='';td.appendChild(input);input.focus();input.select();
+        function cancel(){td.innerHTML=orig;}
+        function save(){
+            const v=parseFloat(input.value);if(isNaN(v)||v<=0){cancel();return;}
+            const today=new Date().toISOString().split('T')[0];
+            const fd=new FormData();fd.append('product_id',pid);fd.append('store_id',sid);fd.append('price',v);fd.append('date_checked',today);fd.append('notes','');
+            fetch('{{ url_for("add_price") }}',{method:'POST',body:fd}).then(()=>window.location.reload());
+        }
+        input.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();save();}if(ev.key==='Escape')cancel();});
+        input.addEventListener('blur',()=>setTimeout(cancel,150));
+    });
+
+    // Store Filter Logic
+    const storeFilterBtn = document.getElementById('storeFilterBtn');
+    const storeFilterDropdown = document.getElementById('storeFilterDropdown');
+    const storeCheckboxes = document.querySelectorAll('.store-checkbox');
+    const selectAllStores = document.getElementById('selectAllStores');
+    const clearAllStores = document.getElementById('clearAllStores');
+    const visibleStoreCount = document.getElementById('visibleStoreCount');
+
+    // Persistence per category
+    const categoryStoreStates = {}; // { categoryName: Set(visibleStoreIds) }
+    const allStoreIds = Array.from(storeCheckboxes).map(c => c.value);
+
+    function initCategoryStates() {
+        const cats = ['all', 'uncategorized'];
+        {{ categories|tojson }}.forEach(c => cats.push(c.toLowerCase()));
+        cats.forEach(cat => {
+            categoryStoreStates[cat] = new Set(allStoreIds);
+        });
+    }
+    initCategoryStates();
+
+    function restoreStoreFilter() {
+        const visibleIds = categoryStoreStates[activeCat];
+        storeCheckboxes.forEach(c => {
+            c.checked = visibleIds.has(c.value);
+        });
+        updateStoreVisibility(false); // don't save back to state during restoration
+    }
+
+    storeFilterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        storeFilterDropdown.style.display = storeFilterDropdown.style.display === 'none' ? 'block' : 'none';
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!storeFilterDropdown.contains(e.target) && e.target !== storeFilterBtn) {
+            storeFilterDropdown.style.display = 'none';
+        }
+    });
+
+    function updateStoreVisibility(saveToState = true) {
+        const visibleStoreIds = new Set(Array.from(storeCheckboxes).filter(c => c.checked).map(c => c.value));
+        visibleStoreCount.textContent = visibleStoreIds.size;
+
+        if (saveToState) {
+            categoryStoreStates[activeCat] = visibleStoreIds;
+        }
+
+        // Update headers
+        document.querySelectorAll('.store-col').forEach(th => {
+            if (visibleStoreIds.has(th.dataset.storeId)) {
+                th.style.display = '';
+            } else {
+                th.style.display = 'none';
+            }
+        });
+
+        // Update QA Row colspan
+        const qaRowStoreSpan = document.getElementById('qaRowStoreSpan');
+        if (qaRowStoreSpan) {
+            qaRowStoreSpan.colSpan = visibleStoreIds.size + 3; // +3 for Cheapest, Highest, Diff
+        }
+
+        // Update body rows and recalculate min/max
+        document.querySelectorAll('#gridBody tr:not(#qaRow):not(#noDataRow)').forEach(tr => {
+            let prices = [];
+            let cells = tr.querySelectorAll('.store-cell');
+            cells.forEach(td => {
+                if (visibleStoreIds.has(td.dataset.storeId)) {
+                    td.style.display = '';
+                    let p = parseFloat(td.dataset.price);
+                    if (!isNaN(p)) {
+                        prices.push({td: td, price: p});
+                    }
+                } else {
+                    td.style.display = 'none';
+                }
+            });
+
+            let minPrice = null;
+            let maxPrice = null;
+            
+            // reset all cells styling
+            cells.forEach(td => {
+                td.classList.remove('cell-best', 'cell-worst');
+            });
+
+            if (prices.length > 0) {
+                minPrice = Math.min(...prices.map(p => p.price));
+                maxPrice = Math.max(...prices.map(p => p.price));
+                
+                if (minPrice !== maxPrice) {
+                    prices.forEach(p => {
+                        if (p.price === minPrice) p.td.classList.add('cell-best');
+                        if (p.price === maxPrice) p.td.classList.add('cell-worst');
+                    });
+                }
+            }
+
+            const bestTd = tr.querySelector('.cs.best');
+            const worstTd = tr.querySelector('.cs.worst');
+            const diffTd = tr.querySelector('.cs.diff');
+            
+            if (bestTd) bestTd.textContent = minPrice !== null ? '₱' + minPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—';
+            if (worstTd) worstTd.textContent = maxPrice !== null ? '₱' + maxPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—';
+            if (diffTd) diffTd.textContent = (minPrice !== null && maxPrice !== null) ? '₱' + (maxPrice - minPrice).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—';
+        });
+    }
+
+    storeCheckboxes.forEach(c => c.addEventListener('change', () => updateStoreVisibility(true)));
+    
+    selectAllStores.addEventListener('click', (e) => {
+        e.preventDefault();
+        storeCheckboxes.forEach(c => c.checked = true);
+        updateStoreVisibility(true);
+    });
+    
+    clearAllStores.addEventListener('click', (e) => {
+        e.preventDefault();
+        storeCheckboxes.forEach(c => c.checked = false);
+        updateStoreVisibility(true);
+    });
+
+    updateStoreVisibility(false);
+
+    // Ctrl+F
+    document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='f'){e.preventDefault();search.focus();search.select();}});
+})();
+</script>
+{% endblock %}

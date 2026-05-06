@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Contact - Waterproof Price Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-people"></i> {{ action }} Contact</h1>
+    <a href="{{ url_for('contacts') }}" class="btn btn-primary-custom">
+        <i class="bi bi-arrow-left"></i> Back to Contacts
+    </a>
+</div>
+
+<div class="form-custom">
+    <form method="POST">
+        <div class="mb-3">
+            <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" id="name" class="form-control" 
+                   value="{{ contact.name if contact else '' }}" placeholder="e.g., Juan Dela Cruz" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="company" class="form-label">Company</label>
+            <input type="text" name="company" id="company" class="form-control" 
+                   value="{{ contact.company if contact else '' }}" placeholder="e.g., ABC Construction">
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="role" class="form-label">Role</label>
+                <select name="role" id="role" class="form-select">
+                    <option value="">-- Select Role --</option>
+                    {% for r in roles %}
+                    <option value="{{ r }}" {% if contact and contact.role == r %}selected{% endif %}>
+                        {{ r }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="phone" class="form-label">Phone Number</label>
+                <input type="text" name="phone" id="phone" class="form-control" 
+                       value="{{ contact.phone if contact else '' }}" placeholder="e.g., +63 917 123 4567">
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="email" class="form-label">Email Address</label>
+            <input type="email" name="email" id="email" class="form-control" 
+                   value="{{ contact.email if contact else '' }}" placeholder="e.g., juan@example.com">
+        </div>
+        
+        <div class="mb-3">
+            <label for="address" class="form-label">Address</label>
+            <textarea name="address" id="address" class="form-control" rows="2" 
+                      placeholder="Optional address...">{{ contact.address if contact else '' }}</textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea name="notes" id="notes" class="form-control" rows="3" 
+                      placeholder="Optional notes about this contact...">{{ contact.notes if contact else '' }}</textarea>
+        </div>
+        
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary-custom btn-lg">
+                <i class="bi bi-check-circle"></i> {{ action }} Contact
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

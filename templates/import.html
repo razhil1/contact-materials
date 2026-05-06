@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Import Excel - Waterproof Price Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-upload"></i> Import Data from Excel</h1>
+</div>
+
+<!-- Instructions -->
+<div class="import-instructions">
+    <h5><i class="bi bi-info-circle"></i> How to Import</h5>
+    <p class="mb-2">Upload an Excel file (.xlsx) with price data. The file must have the following columns:</p>
+    <ul>
+        <li><strong>Required:</strong> product_name, unit, store_name, price, date_checked</li>
+        <li><strong>Optional:</strong> category, brand, store_location, notes</li>
+    </ul>
+    <p class="mb-0">
+        Products and stores that don't exist will be automatically created. 
+        <a href="{{ url_for('export_template') }}" class="btn btn-sm btn-outline-primary ms-2">
+            <i class="bi bi-download"></i> Download Template
+        </a>
+    </p>
+</div>
+
+<!-- Upload Form -->
+<div class="form-custom">
+    <form method="POST" enctype="multipart/form-data">
+        <div class="mb-4">
+            <label for="file" class="form-label">Select Excel File</label>
+            <input type="file" name="file" id="file" class="form-control" accept=".xlsx" required>
+            <div class="form-text">Only .xlsx files are accepted.</div>
+        </div>
+        
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary-custom btn-lg">
+                <i class="bi bi-upload"></i> Import Data
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Example Table -->
+<div class="table-custom mt-4">
+    <div class="table-header px-3 py-2" style="background-color: var(--navy-dark); color: white;">
+        <h5 class="mb-0"><i class="bi bi-table"></i> Expected Format</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>product_name</th>
+                    <th>unit</th>
+                    <th>category</th>
+                    <th>brand</th>
+                    <th>store_name</th>
+                    <th>store_location</th>
+                    <th>price</th>
+                    <th>date_checked</th>
+                    <th>notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Waterproofing Membrane</td>
+                    <td>sqm</td>
+                    <td>Membrane</td>
+                    <td>Brand A</td>
+                    <td>Store X</td>
+                    <td>Manila</td>
+                    <td>150.00</td>
+                    <td>2024-01-15</td>
+                    <td>Good quality</td>
+                </tr>
+                <tr>
+                    <td>Primer Coat</td>
+                    <td>liter</td>
+                    <td>Primer</td>
+                    <td>Brand B</td>
+                    <td>Store Y</td>
+                    <td>Quezon City</td>
+                    <td>250.00</td>
+                    <td>2024-01-15</td>
+                    <td>Fast drying</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

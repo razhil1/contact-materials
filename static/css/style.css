@@ -1,0 +1,455 @@
+:root {
+    --navy-dark: #0D1B2A;
+    --navy-blue: #1A3A5C;
+    --accent-orange: #E85D04;
+    --light-bg: #EFF6FF;
+    --success-green: #059669;
+    --danger-red: #DC2626;
+    --white: #FFFFFF;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background-color: var(--light-bg);
+    color: var(--navy-dark);
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 240px;
+    background-color: var(--navy-dark);
+    padding: 1.5rem;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-header h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.3;
+}
+
+.sidebar-header i {
+    color: var(--accent-orange);
+    margin-right: 0.5rem;
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-item {
+    margin-bottom: 0.5rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--white);
+}
+
+.nav-link.active {
+    background-color: var(--accent-orange);
+    color: var(--white);
+}
+
+.nav-link i {
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 240px;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--navy-blue);
+}
+
+.page-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--navy-dark);
+}
+
+.btn-primary-custom {
+    background-color: var(--accent-orange);
+    border-color: var(--accent-orange);
+    color: var(--white);
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary-custom:hover {
+    background-color: #c94d03;
+    border-color: #c94d03;
+    color: var(--white);
+}
+
+/* Stat Cards */
+.stat-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid var(--navy-blue);
+}
+
+.stat-card.blue {
+    border-left-color: var(--navy-blue);
+}
+
+.stat-card.orange {
+    border-left-color: var(--accent-orange);
+}
+
+.stat-card.green {
+    border-left-color: var(--success-green);
+}
+
+.stat-card.red {
+    border-left-color: var(--danger-red);
+}
+
+.stat-card .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.8;
+}
+
+.stat-card .stat-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--navy-dark);
+}
+
+.stat-card .stat-label {
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Tables */
+.table-custom {
+    background: var(--white);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table-custom thead {
+    background-color: var(--navy-dark);
+    color: var(--white);
+}
+
+.table-custom thead th {
+    font-weight: 600;
+    padding: 1rem;
+    border: none;
+}
+
+.table-custom tbody tr:nth-child(even) {
+    background-color: var(--light-bg);
+}
+
+.table-custom tbody tr:nth-child(odd) {
+    background-color: var(--white);
+}
+
+.table-custom tbody td {
+    padding: 0.875rem 1rem;
+    vertical-align: middle;
+}
+
+.price-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    background-color: var(--navy-blue);
+    color: var(--white);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+}
+
+/* Comparison Cards */
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.store-card {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.store-card:hover {
+    transform: translateY(-3px);
+}
+
+.store-card.best-price {
+    border: 3px solid var(--success-green);
+    background-color: rgba(5, 150, 105, 0.05);
+}
+
+.store-card.most-expensive {
+    border: 3px solid var(--danger-red);
+}
+
+.store-card .badge-best {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background-color: var(--success-green);
+    color: var(--white);
+    padding: 0.25rem 1rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.store-card .store-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--navy-dark);
+    margin-bottom: 0.5rem;
+}
+
+.store-card .store-price {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent-orange);
+    margin-bottom: 0.5rem;
+}
+
+.store-card .store-date {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.store-card .store-savings {
+    font-size: 0.85rem;
+    color: var(--success-green);
+    font-weight: 600;
+}
+
+/* Forms */
+.form-custom {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+}
+
+.form-custom label {
+    font-weight: 600;
+    color: var(--navy-dark);
+    margin-bottom: 0.5rem;
+}
+
+.form-custom .form-control,
+.form-custom .form-select {
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 0.625rem 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-custom .form-control:focus,
+.form-custom .form-select:focus {
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 0 0.2rem rgba(232, 93, 4, 0.25);
+}
+
+/* Filters */
+.filters-bar {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Chart Container */
+.chart-container {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: 400px;
+}
+
+/* Action Buttons in Tables */
+.btn-sm-custom {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 4px;
+}
+
+.btn-edit {
+    background-color: var(--navy-blue);
+    color: var(--white);
+    border: none;
+}
+
+.btn-edit:hover {
+    background-color: #152f4a;
+    color: var(--white);
+}
+
+.btn-delete {
+    background-color: var(--danger-red);
+    color: var(--white);
+    border: none;
+}
+
+.btn-delete:hover {
+    background-color: #b91c1c;
+    color: var(--white);
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.quick-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--white);
+    border: 2px solid var(--navy-blue);
+    border-radius: 8px;
+    color: var(--navy-blue);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.quick-action-btn:hover {
+    background: var(--navy-blue);
+    color: var(--white);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 1rem;
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .stat-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Table with price highlighting */
+.cell-cheapest {
+    background-color: var(--success-green) !important;
+    color: var(--white) !important;
+    font-weight: 600;
+}
+
+.cell-most-expensive {
+    background-color: var(--danger-red) !important;
+    color: var(--white) !important;
+    font-weight: 600;
+}
+
+/* Import page */
+.import-instructions {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.import-instructions ul {
+    margin-left: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.import-instructions li {
+    margin-bottom: 0.5rem;
+}

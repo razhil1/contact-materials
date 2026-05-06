@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Product - Waterproof Price Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-box-seam"></i> {{ action }} Product</h1>
+    <a href="{{ url_for('products') }}" class="btn btn-primary-custom">
+        <i class="bi bi-arrow-left"></i> Back to Products
+    </a>
+</div>
+
+<div class="form-custom">
+    <form method="POST">
+        <div class="mb-3">
+            <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" id="name" class="form-control" 
+                   value="{{ product.name if product else '' }}" placeholder="e.g., Waterproofing Membrane" required>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="unit" class="form-label">Unit</label>
+                <select name="unit" id="unit" class="form-select">
+                    <option value="">-- Select Unit --</option>
+                    {% for u in units %}
+                    <option value="{{ u }}" {% if product and product.unit == u %}selected{% endif %}>
+                        {{ u }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="category" class="form-label">Category</label>
+                <select name="category" id="category" class="form-select">
+                    <option value="">-- Select Category --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if product and product.category == cat %}selected{% endif %}>
+                        {{ cat }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="brand" class="form-label">Brand</label>
+            <input type="text" name="brand" id="brand" class="form-control" 
+                   value="{{ product.brand if product else '' }}" placeholder="e.g., Brand X">
+        </div>
+        
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea name="description" id="description" class="form-control" rows="4" 
+                      placeholder="Optional product description...">{{ product.description if product else '' }}</textarea>
+        </div>
+        
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary-custom btn-lg">
+                <i class="bi bi-check-circle"></i> {{ action }} Product
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
