@@ -10,16 +10,30 @@ from openpyxl.utils import get_column_letter
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'waterproof-construction-secret-key-2024'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///waterproof.db'
+# Detect if running on Vercel
+IS_VERCEL = os.environ.get('VERCEL') == '1'
+
+if IS_VERCEL:
+    # Use /tmp for SQLite and folders on Vercel
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/waterproof.db'
+    app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
+    app.config['EXPORT_FOLDER'] = '/tmp/exports'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///waterproof.db'
+    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+    app.config['EXPORT_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'exports')
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-app.config['EXPORT_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'exports')
 
 db = SQLAlchemy(app)
 
-# Ensure directories exist
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['EXPORT_FOLDER'], exist_ok=True)
+# Ensure directories exist (only if not on Vercel or if we are in /tmp)
+try:
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(app.config['EXPORT_FOLDER'], exist_ok=True)
+except OSError:
+    # Fallback for read-only systems if above failed
+    pass
 
 # Database Models
 class Contact(db.Model):
