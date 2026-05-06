@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Waterproof Price Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+</div>
+
+<!-- Stat Cards -->
+<div class="stat-cards">
+    <div class="stat-card blue">
+        <div class="stat-icon"><i class="bi bi-people"></i></div>
+        <div class="stat-value">{{ total_contacts }}</div>
+        <div class="stat-label">Total Contacts</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-icon"><i class="bi bi-shop"></i></div>
+        <div class="stat-value">{{ total_stores }}</div>
+        <div class="stat-label">Total Stores</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+        <div class="stat-value">{{ total_products }}</div>
+        <div class="stat-label">Total Products</div>
+    </div>
+    <div class="stat-card red">
+        <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+        <div class="stat-value">{{ total_price_entries }}</div>
+        <div class="stat-label">Price Entries</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions mb-4">
+    <a href="{{ url_for('add_price') }}" class="quick-action-btn">
+        <i class="bi bi-plus-circle"></i> Add Price Entry
+    </a>
+    <a href="{{ url_for('add_product') }}" class="quick-action-btn">
+        <i class="bi bi-box-seam"></i> Add Product
+    </a>
+    <a href="{{ url_for('add_store') }}" class="quick-action-btn">
+        <i class="bi bi-shop"></i> Add Store
+    </a>
+    <a href="{{ url_for('add_contact') }}" class="quick-action-btn">
+        <i class="bi bi-person-plus"></i> Add Contact
+    </a>
+</div>
+
+<div class="row">
+    <!-- Recent Price Entries -->
+    <div class="col-lg-8 mb-4">
+        <div class="table-custom">
+            <div class="table-header px-3 py-2" style="background-color: var(--navy-dark); color: white;">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Price Entries</h5>
+            </div>
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Store</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in recent_prices %}
+                    <tr>
+                        <td>{{ entry.date_checked.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ entry.product.name }}</td>
+                        <td>{{ entry.store.name }}</td>
+                        <td><span class="price-badge">₱{{ "{:,.2f}".format(entry.price) }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">No price entries yet. <a href="{{ url_for('add_price') }}">Add one now!</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Top Tracked Products -->
+    <div class="col-lg-4 mb-4">
+        <div class="table-custom">
+            <div class="table-header px-3 py-2" style="background-color: var(--navy-dark); color: white;">
+                <h5 class="mb-0"><i class="bi bi-star"></i> Most Tracked Products</h5>
+            </div>
+            <div class="p-3">
+                {% for product in top_products %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <div>
+                        <strong>{{ product.name }}</strong>
+                        {% if product.brand %}
+                        <br><small class="text-muted">{{ product.brand }}</small>
+                        {% endif %}
+                    </div>
+                    <span class="badge bg-primary">{{ product.count }} entries</span>
+                </div>
+                {% else %}
+                <p class="text-center text-muted py-4">No products tracked yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

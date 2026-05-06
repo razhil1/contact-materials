@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Store - Waterproof Price Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-shop"></i> {{ action }} Store</h1>
+    <a href="{{ url_for('stores') }}" class="btn btn-primary-custom">
+        <i class="bi bi-arrow-left"></i> Back to Stores
+    </a>
+</div>
+
+<div class="form-custom">
+    <form method="POST">
+        <div class="mb-3">
+            <label for="name" class="form-label">Store Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" id="name" class="form-control" 
+                   value="{{ store.name if store else '' }}" placeholder="e.g., Hardware Depot" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="location" class="form-label">Location</label>
+            <input type="text" name="location" id="location" class="form-control" 
+                   value="{{ store.location if store else '' }}" placeholder="e.g., Manila, Philippines">
+        </div>
+        
+        <div class="mb-3">
+            <label for="contact_person" class="form-label">Contact Person</label>
+            <input type="text" name="contact_person" id="contact_person" class="form-control" 
+                   value="{{ store.contact_person if store else '' }}" placeholder="e.g., Juan Dela Cruz">
+        </div>
+        
+        <div class="mb-3">
+            <label for="phone" class="form-label">Phone Number</label>
+            <input type="text" name="phone" id="phone" class="form-control" 
+                   value="{{ store.phone if store else '' }}" placeholder="e.g., +63 917 123 4567">
+        </div>
+        
+        <div class="mb-3">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea name="notes" id="notes" class="form-control" rows="4" 
+                      placeholder="Optional notes about this store...">{{ store.notes if store else '' }}</textarea>
+        </div>
+        
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary-custom btn-lg">
+                <i class="bi bi-check-circle"></i> {{ action }} Store
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

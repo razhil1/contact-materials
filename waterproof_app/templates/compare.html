@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Prices - Waterproof Price Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-graph-up-arrow"></i> Price Comparison</h1>
+    <a href="{{ url_for('export_comparison') }}" class="btn btn-primary-custom">
+        <i class="bi bi-download"></i> Export Excel
+    </a>
+</div>
+
+<!-- Product Selection -->
+<div class="filters-bar">
+    <form method="GET" action="{{ url_for('compare') }}" class="row g-3 align-items-end">
+        <div class="col-md-6">
+            <label for="product_id" class="form-label">Select Product to Compare</label>
+            <select name="product_id" id="product_id" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Choose a product --</option>
+                {% for product in products %}
+                <option value="{{ product.id }}" {% if selected_product_id == product.id %}selected{% endif %}>
+                    {{ product.name }} ({{ product.category }}) - {{ product.brand }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if selected_product_id and comparison_data %}
+<!-- Comparison Cards -->
+<h4 class="mb-3">Store Comparison for {{ comparison_data[0].store.name if comparison_data else '' }}</h4>
+<div class="comparison-grid">
+    {% for item in comparison_data %}
+    <div class="store-card {% if item.is_cheapest %}best-price{% endif %} {% if item.is_most_expensive and not item.is_cheapest %}most-expensive{% endif %}">
+        {% if item.is_cheapest %}
+        <span class="badge-best"><i class="bi bi-check-circle"></i> Best Price</span>
+        {% endif %}
+        
+        <div class="store-name">{{ item.store.name }}</div>
+        <div class="store-location text-muted small mb-2">
+            <i class="bi bi-geo-alt"></i> {{ item.store.location or 'N/A' }}
+        </div>
+        <div class="store-price">₱{{ "{:,.2f}".format(item.price) }}</div>
+        <div class="store-date">
+            <i class="bi bi-calendar"></i> Last checked: {{ item.date_checked.strftime('%Y-%m-%d') }}
+        </div>
+        {% if not item.is_cheapest and item.savings > 0 %}
+        <div class="store-savings">
+            <i class="bi bi-arrow-down-right"></i> You save ₱{{ "{:,.2f}".format(item.savings) }} vs cheapest
+        </div>
+        {% endif %}
+        {% if item.notes %}
+        <div class="store-notes mt-2 small text-muted">
+            <i class="bi bi-chat-left-text"></i> {{ item.notes[:50] }}{% if item.notes|length > 50 %}...{% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Price History Chart -->
+<div class="chart-container">
+    <canvas id="priceHistoryChart"></canvas>
+</div>
+{% endif %}
+
+<!-- Full Matrix Table -->
+<div class="table-custom mt-4">
+    <div class="table-header px-3 py-2" style="background-color: var(--navy-dark); color: white;">
+        <h5 class="mb-0"><i class="bi bi-table"></i> Complete Price Matrix (All Products × All Stores)</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    {% for store in all_stores %}
+                    <th>{{ store.name }}</th>
+                    {% endfor %}
+                    <th>Cheapest</th>
+                    <th>Most Expensive</th>
+                    <th>Range</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in matrix_data %}
+                <tr>
+                    <td><strong>{{ row.product.name }}</strong></td>
+                    <td>{{ row.product.category }}</td>
+                    {% for store_data in row.stores %}
+                    <td class="{% if store_data.price is not none %}
+                        {% if store_data.price == row.min_price %}cell-cheapest{% endif %}
+                        {% if store_data.price == row.max_price and row.min_price != row.max_price %}cell-most-expensive{% endif %}
+                    {% endif %}">
+                        {% if store_data.price is not none %}
+                        ₱{{ "{:,.2f}".format(store_data.price) }}
+                        <br><small class="text-muted" style="font-size: 0.7rem;">{{ store_data.date.strftime('%m/%d') if store_data.date else '' }}</small>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td>{% if row.min_price is not none %}₱{{ "{:,.2f}".format(row.min_price) }}{% endif %}</td>
+                    <td>{% if row.max_price is not none %}₱{{ "{:,.2f}".format(row.max_price) }}{% endif %}</td>
+                    <td>{% if row.min_price is not none and row.max_price is not none %}₱{{ "{:,.2f}".format(row.max_price - row.min_price) }}{% endif %}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ 5 + all_stores|length }}" class="text-center py-4 text-muted">
+                        No price data available. Start by <a href="{{ url_for('add_price') }}">adding price entries</a>.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if price_history %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('priceHistoryChart').getContext('2d');
+    
+    const datasets = [];
+    const colors = [
+        '#E85D04', '#1A3A5C', '#059669', '#DC2626', '#7C3AED',
+        '#2563EB', '#0891B2', '#CA8A04', '#DB2777', '#4F46E5'
+    ];
+    
+    let colorIndex = 0;
+    Object.keys({{ price_history | tojson }}).forEach(function(storeName, index) {
+        const data = {{ price_history | tojson }}[storeName];
+        datasets.push({
+            label: storeName,
+            data: data.prices,
+            labels: data.dates,
+            borderColor: colors[colorIndex % colors.length],
+            backgroundColor: colors[colorIndex % colors.length] + '20',
+            tension: 0.3,
+            fill: false
+        });
+        colorIndex++;
+    });
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Price History Over Time',
+                    font: { size: 16, weight: 'bold' }
+                },
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ₱' + context.parsed.y.toFixed(2);
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'category',
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Price (₱)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '₱' + value.toFixed(2);
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
