@@ -51,6 +51,7 @@ class Store(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(200))
+    category = db.Column(db.String(50))
     contact_person = db.Column(db.String(100))
     phone = db.Column(db.String(20))
     notes = db.Column(db.Text)
@@ -408,6 +409,7 @@ def add_store():
     if request.method == 'POST':
         name = request.form.get('name')
         location = request.form.get('location')
+        category = request.form.get('category')
         contact_person = request.form.get('contact_person')
         phone = request.form.get('phone')
         notes = request.form.get('notes', '')
@@ -419,6 +421,7 @@ def add_store():
         new_store = Store(
             name=name,
             location=location,
+            category=category,
             contact_person=contact_person,
             phone=phone,
             notes=notes
@@ -430,7 +433,8 @@ def add_store():
         flash('Store added successfully!', 'success')
         return redirect(url_for('stores'))
     
-    return render_template('store_form.html', store=None, action='Add')
+    categories = ['Masonry', 'Scaffolding', 'Plumbing', 'Painting', 'Tile Works', 'Steels', 'Woods & Boards', 'Glass & Aluminum', 'Miscellaneous', 'Safety', 'Tools', 'Pats Products', 'Raw Materials', 'Hardware Store', 'General Supplier']
+    return render_template('store_form.html', store=None, action='Add', categories=categories)
 
 @app.route('/stores/edit/<int:id>', methods=['GET', 'POST'])
 def edit_store(id):
@@ -439,6 +443,7 @@ def edit_store(id):
     if request.method == 'POST':
         store.name = request.form.get('name')
         store.location = request.form.get('location')
+        store.category = request.form.get('category')
         store.contact_person = request.form.get('contact_person')
         store.phone = request.form.get('phone')
         store.notes = request.form.get('notes', '')
@@ -448,7 +453,8 @@ def edit_store(id):
         flash('Store updated successfully!', 'success')
         return redirect(url_for('stores'))
     
-    return render_template('store_form.html', store=store, action='Edit')
+    categories = ['Masonry', 'Scaffolding', 'Plumbing', 'Painting', 'Tile Works', 'Steels', 'Woods & Boards', 'Glass & Aluminum', 'Miscellaneous', 'Safety', 'Tools', 'Pats Products', 'Raw Materials', 'Hardware Store', 'General Supplier']
+    return render_template('store_form.html', store=store, action='Edit', categories=categories)
 
 @app.route('/stores/delete/<int:id>', methods=['POST'])
 def delete_store(id):

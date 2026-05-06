@@ -138,11 +138,14 @@
                     <button id="clearAllStores" style="background:none;border:none;color:#6b7280;font-size:0.7rem;cursor:pointer;padding:0;">None</button>
                 </div>
             </div>
-            {% for store in all_stores %}
+            {% for cat, stores in all_stores|groupby('category') %}
+            <div style="font-size: 0.65rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; margin-top: 0.6rem; margin-bottom: 0.3rem; letter-spacing: 0.03em;">{{ cat or 'Uncategorized' }}</div>
+            {% for store in stores %}
             <label style="display:flex; align-items:flex-start; gap:0.4rem; font-size:0.8rem; margin-bottom:0.4rem; cursor:pointer; color:#374151;">
                 <input type="checkbox" class="store-checkbox" value="{{ store.id }}" checked style="margin-top:0.2rem;"> 
                 <span style="line-height:1.2;">{{ store.name }}<br><small style="color:#9ca3af; font-size:0.65rem;">{{ store.location or '' }}</small></span>
             </label>
+            {% endfor %}
             {% endfor %}
         </div>
     </div>

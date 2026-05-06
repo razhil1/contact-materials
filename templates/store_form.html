@@ -23,6 +23,17 @@
             <input type="text" name="location" id="location" class="form-control" 
                    value="{{ store.location if store else '' }}" placeholder="e.g., Manila, Philippines">
         </div>
+
+        <div class="mb-3">
+            <label for="category" class="form-label">Store Category</label>
+            <select name="category" id="category" class="form-select">
+                <option value="">-- Select Category --</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}" {% if store and store.category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+            <div class="form-text">Categorizing helps you filter stores in the price comparison.</div>
+        </div>
         
         <div class="mb-3">
             <label for="contact_person" class="form-label">Contact Person</label>
