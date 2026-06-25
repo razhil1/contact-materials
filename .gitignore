@@ -1,15 +1,1 @@
-__pycache__/
-*.py[cod]
-*$py.class
-.env
-.venv
-env/
-venv/
-ENV/
-instance/
-waterproof.db
-uploads/
-exports/
-.DS_Store
-.vscode/
-.idea/
+Nothing needs to be added to .gitignore since the changes only include source files (.html, .py) and there are no build artifacts, dependencies, or temporary files in the provided list.
