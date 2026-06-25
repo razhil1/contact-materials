@@ -998,5 +998,10 @@ def api_delete_product(id):
     db.session.commit()
     return jsonify({'success': True})
 
+@app.route('/ai-ide-agent')
+def ai_ide_agent():
+    """AI IDE Agent page powered by Puter.js v2"""
+    return render_template('ai-ide-agent.html')
+
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=5000)
